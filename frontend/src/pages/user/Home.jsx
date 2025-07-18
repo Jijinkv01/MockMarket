@@ -1,0 +1,76 @@
+import React from 'react'
+import { useEffect,useState } from 'react';
+import axiosInstance from '../../api/axiosInstance'
+import { useDispatch } from "react-redux"
+import { useNavigate } from "react-router-dom";
+import { logout } from '../../store/userSlice';
+import { setUser } from '../../store/userSlice';
+import NavbarHomepage from '../../component/user/homePageComponents/NavbarHomepage';
+import Watchlist from '../../component/user/homePageComponents/Watchlist';
+import DashboardComponent from '../../component/user/homePageComponents/DashboardComponent';
+import OrdersComponent from '../../component/user/homePageComponents/OrdersComponent';
+import FundsComponent from '../../component/user/homePageComponents/FundsComponent';
+
+
+
+const Home = () => {
+  const [active, setActive] = useState("Dashboard")
+
+  let isMounted = true;
+
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await axiosInstance.get("/home", { withCredentials: true });
+        if (isMounted) {
+          console.log("User received from backend:", res.data.user);
+          dispatch(setUser(res.data.user));
+          localStorage.setItem("user", JSON.stringify(res.data.user));
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.error("Auth failed:", err);
+          navigate("/login");
+        }
+      }
+    };
+    checkAuth();
+    return () => {
+      isMounted = false; // ✅ Prevents setState after logout
+    };
+  }, [dispatch, navigate]);
+
+
+  const handleLogout = async () => {
+    try {
+      await axiosInstance.post("/logout", {}, { withCredentials: true })
+      dispatch(logout())
+      localStorage.removeItem("user");
+      navigate("/login")
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  }
+
+
+  return (
+    <div className='p-2'>
+      <NavbarHomepage active={active} setActive={setActive} />
+
+      <div className='flex' >
+          <Watchlist />
+          {active === "Dashboard" ? <DashboardComponent active={active}/> : ""}
+
+          {active === "Orders" ? <OrdersComponent active={active} /> : ""}
+
+          {active === "Funds" ? <FundsComponent active={active} /> : ""}
+      </div>
+
+    </div>
+  )
+}
+
+export default Home
