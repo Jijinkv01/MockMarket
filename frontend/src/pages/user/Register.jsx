@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from "react-redux"
 import { setUser } from '../../store/userSlice';
 
+
 const Register = () => {
   const navigate = useNavigate()
   const dispatch = useDispatch()
@@ -39,7 +40,6 @@ const Register = () => {
       if (res.data.success) {
         localStorage.setItem("user", JSON.stringify(res.data.user));
         dispatch(setUser(res.data.user));
-          
         alert(res.data.message)
         navigate("/home")
       }

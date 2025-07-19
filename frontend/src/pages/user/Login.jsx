@@ -10,6 +10,7 @@ import { useDispatch } from 'react-redux';
 import { setUser } from '../../store/userSlice';
 import { useNavigate } from 'react-router-dom';
 
+
 const Login = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
@@ -22,25 +23,25 @@ const Login = () => {
     setError({ message: msg, id: Date.now() }); // ensures a unique key each time
   };
 
-  const handleLogin = async(e) => {
+  const handleLogin = async (e) => {
     e.preventDefault()
     if (!email.trim()) return showError("Email is Required")
     if (!password) return showError("Password is Required")
     showError("")
     setEmail("")
     setPassword("")
-    console.log("hahahhaha",email, password)
+    console.log("hahahhaha", email, password)
     try {
-      const res = await axiosInstance.post("/login",{email, password})
-      if(res.data.success){
-        localStorage.setItem("user",JSON.stringify(res.data.user))
+      const res = await axiosInstance.post("/login", { email, password })
+      if (res.data.success) {
+        localStorage.setItem("user", JSON.stringify(res.data.user))
         dispatch(setUser(res.data.user))
-        console.log("poyi vanna user in login page .....",res.data.user)
+        console.log("poyi vanna user in login page .....", res.data.user)
         alert(res.data.message)
         navigate("/home")
       }
     } catch (error) {
-      console.error("error",error)
+      console.error("error", error)
       alert(error.response?.data?.message || 'Something went wrong')
     }
   }

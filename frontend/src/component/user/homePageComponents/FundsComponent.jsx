@@ -1,7 +1,12 @@
 import React from 'react'
 import { FaSackDollar } from "react-icons/fa6";
+import { useSelector } from 'react-redux';
+
 
 const FundsComponent = ({active}) => {
+
+    const balance = useSelector((state)=>state.balance.amount)
+
   return (
     <div className='  mx-2  w-full'>
         <div className='flex items-center px-10 py-3 font-semibold underline '>
@@ -15,7 +20,7 @@ const FundsComponent = ({active}) => {
                         <h1 className='text-green-600 font-medium text-2xl'>Cash Balance</h1>
                 
                     </div>
-                    <p className='text-xl font-bold border border-t-red-500 border-b-green-500 rounded-lg px-3'>₹ 25000</p>
+                    <p className='text-xl font-bold border border-t-red-500 border-b-green-500 rounded-lg px-3'>₹ {balance}</p>
                 </div>
 
             </div>
