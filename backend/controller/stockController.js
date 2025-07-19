@@ -63,8 +63,10 @@ const addSymbol = async(req,res) => {
 
 const deleteSymbol = async(req,res) => {
   const { symbol } = req.params;
+  console.log("req.params for delete",symbol)
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user.id);
+    console.log("user for delete",user)
     if (!user) return res.status(404).json({ message: "User not found" });
 
     user.watchlist = user.watchlist.filter(s => s !== symbol);

@@ -89,9 +89,18 @@ const Watchlist = () => {
     // }
   };
 
-  const removeFromWatchlist = (symbol) => {
-    setWatchlist(watchlist.filter(item => item !== symbol));
-    socket.emit('unsubscribe', symbol);
+  const removeFromWatchlist = async(symbol) => {
+    try {
+      const res = await axiosInstance.delete(`/api/watchlist/${symbol}`);
+
+      setWatchlist(res.data.watchlist); // update list with server response
+      socket.emit('unsubscribe', symbol);
+      
+    } catch (error) {
+      console.error("Delete error",error.message)
+    }
+    // setWatchlist(watchlist.filter(item => item !== symbol));
+    // socket.emit('unsubscribe', symbol);
   };
 
 
