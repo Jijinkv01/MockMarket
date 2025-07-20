@@ -2,8 +2,19 @@ const User = require("../model/user/userModel")
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcryptjs")
 const DemoCash = require("../model/user/demoCashSchema")
+const RefreshToken = require("../model/user/RefreshTokenScheme")
 
 
+
+
+const saveRefreshToken = async (userId, refreshToken) => {
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+    await RefreshToken.findOneAndUpdate(
+        { userId },
+        { refreshToken, expiresAt },
+        { upsert: true, new: true }
+    );
+};
 
 
 const register = async (req, res) => {
@@ -16,14 +27,24 @@ const register = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10)
         const user = await User.create({ email, password: hashedPassword })
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE })
 
-        
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE })
+        const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_EXPIRE });
+
+        await saveRefreshToken(user._id, refreshToken);
+
 
         res.cookie("token", token, {
             httpOnly: true,       // 👈 this protects it from JS access (XSS)
             secure: process.env.NODE_ENV === "production", // HTTPS only in production
             sameSite: "Lax",   // CSRF protection
+            maxAge: 15 * 60 * 1000, // 15 mins
+        });
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "Lax",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
 
@@ -36,12 +57,60 @@ const register = async (req, res) => {
 }
 
 const logout = async (req, res) => {
-    res.clearCookie("token", {
-        httpOnly: true,
-        sameSite: "Strict",
-        secure: process.env.NODE_ENV === "production",
-    });
-    res.status(200).json({ success: true, message: "Logged out successfully" });
+
+    try {
+        // Remove refresh token from DB if stored
+        await RefreshToken.deleteOne({ userId: req.user.id }); // optional
+
+        //  Clear the refresh token cookie
+        res.clearCookie("token", {
+            httpOnly: true,
+            sameSite: "Strict",
+            secure: process.env.NODE_ENV === "production",
+        });
+        // Clear the refresh token cookie
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: true,
+            sameSite: "Strict",
+        });
+
+        return res.status(200).json({ success: true, message: "Logged out successfully" });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Logout failed" });
+    }
+}
+
+const refresh = async (req, res) => {
+    const tokenFromCookie = req.cookies.refreshToken;
+
+    if (!tokenFromCookie) {
+        return res.status(401).json({ success: false, message: "No refresh token provided" });
+    }
+    try {
+        const decoded = jwt.verify(tokenFromCookie, process.env.JWT_REFRESH_SECRET);
+        const tokenDoc = await RefreshToken.findOne({ userId: decoded.id });
+
+        if (!tokenDoc || tokenDoc.refreshToken !== tokenFromCookie) {
+            return res.status(403).json({ success: false, message: "Invalid refresh token" });
+        }
+
+        const newToken = jwt.sign({ id: decoded.id }, process.env.JWT_SECRET, {
+            expiresIn: process.env.JWT_EXPIRE,
+        });
+
+        res.cookie("token", newToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "Lax",
+            maxAge: 15 * 60 * 1000, // 15 minutes
+        });
+
+        res.status(200).json({ success: true, message: "Access token refreshed" });
+    } catch (error) {
+        console.error("Refresh error:", error);
+        return res.status(403).json({ success: false, message: "Refresh token expired or invalid" });
+    }
 }
 
 const home = async (req, res) => {
@@ -64,14 +133,26 @@ const login = async (req, res) => {
         if (!isMatch) {
             return res.status(400).json({ success: false, message: "Incorrect Password" })
         }
+
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE })
+        const refreshToken = jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_EXPIRE });
+
+        await saveRefreshToken(user._id, refreshToken);
 
         res.cookie("token", token, {
             httpOnly: true,       // 👈 this protects it from JS access (XSS)
             secure: process.env.NODE_ENV === "production", // HTTPS only in production
             sameSite: "Lax",   // CSRF protection
+            maxAge: 15 * 60 * 1000, // 15 mins
+        });
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "Lax",
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         });
+
 
         res.status(200).json({ success: true, message: "Login Successfull", user: { id: user._id, email: user.email } })
 
@@ -81,19 +162,21 @@ const login = async (req, res) => {
     }
 }
 
-const getUserBalance = async (req,res) => {
+const getUserBalance = async (req, res) => {
     try {
         const userId = req.user.id;
         console.log("userid for fetching balance hahahaha")
-    const cash = await DemoCash.findOne({ userId });
+        const cash = await DemoCash.findOne({ userId });
 
-    if (!cash) return res.status(404).json({ message: "No balance found" });
+        if (!cash) return res.status(404).json({ message: "No balance found" });
 
-    res.status(200).json({ balance: cash.balance });
+        res.status(200).json({ balance: cash.balance });
     } catch (error) {
         res.status(500).json({ message: "Failed to fetch balance" });
     }
 }
+
+
 
 
 module.exports = {
@@ -101,7 +184,8 @@ module.exports = {
     logout,
     home,
     login,
-    getUserBalance
+    getUserBalance,
+    refresh
 
 
 }
