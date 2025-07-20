@@ -12,11 +12,13 @@ import Watchlist from '../../component/user/homePageComponents/Watchlist';
 import DashboardComponent from '../../component/user/homePageComponents/DashboardComponent';
 import OrdersComponent from '../../component/user/homePageComponents/OrdersComponent';
 import FundsComponent from '../../component/user/homePageComponents/FundsComponent';
+import BuyModal from '../../component/user/homePageComponents/BuyModal';
 
 
 
 const Home = () => {
   const [active, setActive] = useState("Dashboard")
+  const [showBuySellModal, setShowBuySellModal] = useState(null)
 
 
 
@@ -61,22 +63,24 @@ const Home = () => {
     }
   }
 
-
-
-
-
   return (
     <div className='p-2'>
       <NavbarHomepage active={active} setActive={setActive} />
 
       <div className='flex' >
-        <Watchlist />
+        <Watchlist setShowBuySellModal={setShowBuySellModal}/>
         {active === "Dashboard" ? <DashboardComponent active={active} /> : ""}
 
         {active === "Orders" ? <OrdersComponent active={active} /> : ""}
 
         {active === "Funds" ? <FundsComponent active={active} /> : ""}
       </div>
+
+
+       {showBuySellModal && <BuyModal type={showBuySellModal} />}
+      
+
+
 
     </div>
   )

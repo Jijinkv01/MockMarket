@@ -7,7 +7,7 @@ import { MdDelete } from "react-icons/md";
 
 
 
-const Watchlist = () => {
+const Watchlist = ({setShowBuySellModal}) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [watchlist, setWatchlist] = useState([]);
@@ -51,6 +51,7 @@ const Watchlist = () => {
       }));
     });
 
+   
     return () => newSocket.close();
   }, []);
 
@@ -104,6 +105,8 @@ const Watchlist = () => {
   };
 
 
+  
+
   return (
     <div className=''>
       <div className='border-r-2 border-r-gray-200 w-90 py-1 h-screen overflow-y-auto'>
@@ -144,8 +147,8 @@ const Watchlist = () => {
                 <p>BSE</p>
                 <div className='flex gap-6 justify-center items-center'>
                   <MdDelete className='  text-xl text-black rounded-md cursor-pointer hover:bg-red-500 hover:text-white' onClick={() => removeFromWatchlist(symbol)} />
-                  <button className='text-lg border font-bold text-green-500 hover:bg-green-500 hover:text-white cursor-pointer rounded-md w-10' >B</button>
-                  <button className='text-lg border font-bold text-red-500 hover:bg-red-500 hover:text-white cursor-pointer rounded-md w-10' >S</button>
+                  <button onClick={() => setShowBuySellModal("buy")} className='text-lg border font-bold text-green-500 hover:bg-green-500 hover:text-white cursor-pointer rounded-md w-10' >B</button>
+                  <button onClick={() => setShowBuySellModal("sell")} className='text-lg border font-bold text-red-500 hover:bg-red-500 hover:text-white cursor-pointer rounded-md w-10' >S</button>
                 </div>
 
 
