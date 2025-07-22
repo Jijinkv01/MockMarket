@@ -1,11 +1,16 @@
 import { useRef, useState } from "react"
 import React from 'react'
 import { motion } from "framer-motion"
+import { useSelector } from "react-redux"
 
 
-const BuyModal = ({ type, onClose }) => {
+const BuyModal = ({ type, symbol, onClose }) => {
   const constraintRef = useRef(null);
     const [isBuy, setIsBuy] = useState(type === "buy");
+    
+    const stockData = useSelector(state => state.stocks.stockData)
+    const currentPrice = stockData[symbol]?.c.toFixed(2);
+    // console.log(currentPrice)
 
 
     // close modal
@@ -29,8 +34,8 @@ const BuyModal = ({ type, onClose }) => {
         <div className={`${isBuy ? "bg-green-400" : "bg-red-400"} p-4`}>
           <div className="flex justify-between cursor-move ">
             <div className="text-gray-800">
-              <p>Symbol</p>
-              <p>Price</p>
+              <p>{symbol}</p>
+              <p>{currentPrice ?? "-"}</p>
             </div>
             {/* toogle btn */}
             <div >

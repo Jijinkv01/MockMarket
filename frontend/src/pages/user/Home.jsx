@@ -77,7 +77,7 @@ const Home = () => {
       </div>
 
 
-       {showBuySellModal && <BuyModal type={showBuySellModal} onClose={() => setShowBuySellModal(null)} />}
+       {showBuySellModal && <BuyModal type={showBuySellModal.type} symbol={showBuySellModal.symbol} onClose={() => setShowBuySellModal(null)} />}
       
 
 

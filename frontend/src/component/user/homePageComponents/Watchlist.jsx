@@ -4,31 +4,43 @@ import { CiSearch } from "react-icons/ci";
 import { io } from 'socket.io-client';
 import axiosInstance from '../../../api/axiosInstance';
 import { MdDelete } from "react-icons/md";
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  setWatchlist,
+  addToWatchlist,
+  removeFromWatchlist,
+  updateStockData
+} from "../../../store/stockSlice"
 
 
 
-const Watchlist = ({setShowBuySellModal}) => {
+const Watchlist = ({ setShowBuySellModal }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
-  const [watchlist, setWatchlist] = useState([]);
   const [socket, setSocket] = useState(null);
-  const [stockData, setStockData] = useState({});
-  
+
+ const dispatch = useDispatch();
+ const watchlist = useSelector(state => state.stocks.watchlist);
+  const stockData = useSelector(state => state.stocks.stockData);
+
+  // const [stockData, setStockData] = useState({});
+  // const [watchlist, setWatchlist] = useState([]);
+
   console.log("stock data ", stockData)
 
   useEffect(() => {
     const fetchWatchlist = async () => {
       try {
         const res = await axiosInstance.get("/api/watchlist")
-         if (Array.isArray(res.data.watchlist)) {
-        setWatchlist(res.data.watchlist);
-        console.log("avvaavava",res.data.watchlist)
-        res.data.watchlist.forEach(symbol => {
-          socket?.emit('subscribe', symbol);
-        });
-      } else {
-        console.error("Watchlist format unexpected:", res.data);
-      }
+        if (Array.isArray(res.data.watchlist)) {
+           dispatch(setWatchlist(res.data.watchlist));
+          console.log("avvaavava", res.data.watchlist)
+          res.data.watchlist.forEach(symbol => {
+            socket?.emit('subscribe', symbol);
+          });
+        } else {
+          console.error("Watchlist format unexpected:", res.data);
+        }
       } catch (error) {
         console.error('Failed to fetch watchlist:', error);
       }
@@ -36,7 +48,7 @@ const Watchlist = ({setShowBuySellModal}) => {
     if (socket) {
       fetchWatchlist();
     }
-  }, [socket])
+  }, [socket, dispatch])
 
 
 
@@ -45,15 +57,12 @@ const Watchlist = ({setShowBuySellModal}) => {
     setSocket(newSocket);
 
     newSocket.on('stockUpdate', (update) => {
-      setStockData(prev => ({
-        ...prev,
-        [update.symbol]: update.data
-      }));
+       dispatch(updateStockData({ symbol: update.symbol, data: update.data }));
     });
 
-   
+
     return () => newSocket.close();
-  }, []);
+  }, [dispatch]);
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -65,21 +74,17 @@ const Watchlist = ({setShowBuySellModal}) => {
     }
   };
 
-  const addToWatchlist = async (symbol) => {
+  const handleAddToWatchlist  = async (symbol) => {
     if (watchlist.includes(symbol)) return;
     try {
       await axiosInstance.post('/api/watchlist', { symbol });
-      setWatchlist(prev => [...prev, symbol]);
+       dispatch(addToWatchlist(symbol));
       socket?.emit('subscribe', symbol);
       setQuery('');
       setResults([]);
-
     } catch (error) {
       console.error("Error adding to watchlist:", error);
     }
-
-
-
 
     // if (!watchlist.includes(symbol)) {
     //   setWatchlist([...watchlist, symbol]);
@@ -90,22 +95,22 @@ const Watchlist = ({setShowBuySellModal}) => {
     // }
   };
 
-  const removeFromWatchlist = async(symbol) => {
+  const removeFromWatchlist = async (symbol) => {
     try {
       const res = await axiosInstance.delete(`/api/watchlist/${symbol}`);
 
-      setWatchlist(res.data.watchlist); // update list with server response
+      dispatch(setWatchlist(res.data.watchlist));
       socket.emit('unsubscribe', symbol);
-      
+
     } catch (error) {
-      console.error("Delete error",error.message)
+      console.error("Delete error", error.message)
     }
     // setWatchlist(watchlist.filter(item => item !== symbol));
     // socket.emit('unsubscribe', symbol);
   };
 
 
-  
+
 
   return (
     <div className=''>
@@ -129,7 +134,7 @@ const Watchlist = ({setShowBuySellModal}) => {
 
         <div>
           {results.map((stock) => (
-            <div key={stock.displaySymbol} onClick={() => addToWatchlist(stock.displaySymbol)} className="stock-result p-2 flex justify-between border-b-2 border-b-gray-300 cursor-pointer hover:bg-gray-100">
+            <div key={stock.displaySymbol} onClick={() => handleAddToWatchlist(stock.displaySymbol)} className="stock-result p-2 flex justify-between border-b-2 border-b-gray-300 cursor-pointer hover:bg-gray-100">
               <span>{stock.displaySymbol} - {stock.description}</span>
 
             </div>
@@ -140,19 +145,19 @@ const Watchlist = ({setShowBuySellModal}) => {
           {watchlist.map((symbol) => (
             <div className='border-b border-b-gray-400' key={symbol}>
               <div className='flex justify-between  '>
-                <h1 className={`${stockData[symbol]?.d >0 ? "text-green-400" : "text-red-400" }`} >{symbol}</h1>
-                <h1 className={`${stockData[symbol]?.d >0 ? "text-green-400" : "text-red-400" }`}>${stockData[symbol]?.c ?? '—'}</h1>
+                <h1 className={`${stockData[symbol]?.d > 0 ? "text-green-400" : "text-red-400"}`} >{symbol}</h1>
+                <h1 className={`${stockData[symbol]?.d > 0 ? "text-green-400" : "text-red-400"}`}>${stockData[symbol]?.c.toFixed(2) ?? '—'}</h1>
               </div>
               <div className='flex justify-between items-center text-[12px] py-1 text-gray-400 '>
                 <p>BSE</p>
                 <div className='flex gap-6 justify-center items-center'>
                   <MdDelete className='  text-xl text-black rounded-md cursor-pointer hover:bg-red-500 hover:text-white' onClick={() => removeFromWatchlist(symbol)} />
-                  <button onClick={() => setShowBuySellModal("buy")} className='text-lg border font-bold text-green-500 hover:bg-green-500 hover:text-white cursor-pointer rounded-md w-10' >B</button>
-                  <button onClick={() => setShowBuySellModal("sell")} className='text-lg border font-bold text-red-500 hover:bg-red-500 hover:text-white cursor-pointer rounded-md w-10' >S</button>
+                  <button onClick={() => setShowBuySellModal({type: "buy", symbol})} className='text-lg border font-bold text-green-500 hover:bg-green-500 hover:text-white cursor-pointer rounded-md w-10' >B</button>
+                  <button onClick={() => setShowBuySellModal({type: "sell", symbol})} className='text-lg border font-bold text-red-500 hover:bg-red-500 hover:text-white cursor-pointer rounded-md w-10' >S</button>
                 </div>
 
 
-                <p>{stockData[symbol]?.d ?? '—'} ({stockData[symbol]?.dp ?? '—'})</p>
+                <p>{stockData[symbol]?.d.toFixed(2) ?? '—'} ({stockData[symbol]?.dp.toFixed(2) ?? '—'})</p>
               </div>
 
               {/* <button className='bg-red-500 text-white text-sm rounded-md' onClick={() => removeFromWatchlist(symbol)}>Remove</button> */}
