@@ -9,11 +9,15 @@ import Login from './pages/user/Login'
 import Home from "./pages/user/Home"
 import PrivateRoute from './routes/PrivateRoute'
 import PublicRoute from './routes/PublicRoute'
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 const App = () => {
 
   return (
+    <>
+    
     <Routes>
       <Route path='/' element={<PublicRoute> <LandingPage /> </PublicRoute>}  />
       <Route path='/products' element={<Products />}  />
@@ -22,11 +26,15 @@ const App = () => {
       <Route path='/register' element={<PublicRoute> <Register /> </PublicRoute>}  />
       <Route path='/login' element={<PublicRoute> <Login /> </PublicRoute>}  />
       <Route path='/home' element={<PrivateRoute> <Home /> </PrivateRoute>}  />
+       
       
       
       
       
     </Routes>
+    <ToastContainer position="top-center" autoClose={3000} />
+
+    </>
   )
 }
 

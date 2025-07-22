@@ -9,6 +9,8 @@ import axiosInstance from '../../api/axiosInstance';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../../store/userSlice';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+
 
 
 const Login = () => {
@@ -37,12 +39,12 @@ const Login = () => {
         localStorage.setItem("user", JSON.stringify(res.data.user))
         dispatch(setUser(res.data.user))
         console.log("poyi vanna user in login page .....", res.data.user)
-        alert(res.data.message)
         navigate("/home")
+        toast.success(res.data.message)
       }
     } catch (error) {
       console.error("error", error)
-      alert(error.response?.data?.message || 'Something went wrong')
+      toast.error(error.response?.data?.message || 'Something went wrong')
     }
   }
 

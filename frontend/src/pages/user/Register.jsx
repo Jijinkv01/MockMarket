@@ -8,6 +8,7 @@ import axiosInstance from '../../api/axiosInstance';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from "react-redux"
 import { setUser } from '../../store/userSlice';
+import { toast } from 'react-toastify';
 
 
 const Register = () => {
@@ -40,12 +41,12 @@ const Register = () => {
       if (res.data.success) {
         localStorage.setItem("user", JSON.stringify(res.data.user));
         dispatch(setUser(res.data.user));
-        alert(res.data.message)
+        toast.success(res.data.message)
         navigate("/home")
       }
     } catch (error) {
       console.error(error)
-      alert(error.response?.data?.message || 'Something went wrong')
+      toast.error(error.response?.data?.message || 'Something went wrong')
     }
   }
 

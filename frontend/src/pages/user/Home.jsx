@@ -64,7 +64,7 @@ const Home = () => {
   }
 
   return (
-    <div className='p-2'>
+    <div className='p-2 '>
       <NavbarHomepage active={active} setActive={setActive} />
 
       <div className='flex' >

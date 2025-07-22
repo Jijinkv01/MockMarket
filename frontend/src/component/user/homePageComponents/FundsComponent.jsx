@@ -17,7 +17,7 @@ const FundsComponent = ({active}) => {
                 <div className='flex flex-col items-center gap-6'>
                     <div className='flex items-center gap-4'>
                         <FaSackDollar className='text-yellow-500 text-4xl' />
-                        <h1 className='text-green-600 font-medium text-2xl'>Cash Balance</h1>
+                        <h1 className='text-green-600 font-medium text-2xl'>Account Balance</h1>
                 
                     </div>
                     <p className='text-xl font-bold border border-t-red-500 border-b-green-500 rounded-lg px-3'>₹ {balance}</p>

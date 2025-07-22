@@ -14,7 +14,7 @@ const Watchlist = ({setShowBuySellModal}) => {
   const [socket, setSocket] = useState(null);
   const [stockData, setStockData] = useState({});
   
-  console.log("stock data", stockData)
+  console.log("stock data ", stockData)
 
   useEffect(() => {
     const fetchWatchlist = async () => {
@@ -140,8 +140,8 @@ const Watchlist = ({setShowBuySellModal}) => {
           {watchlist.map((symbol) => (
             <div className='border-b border-b-gray-400' key={symbol}>
               <div className='flex justify-between  '>
-                <h1>{symbol}</h1>
-                <h1>${stockData[symbol]?.c ?? '—'}</h1>
+                <h1 className={`${stockData[symbol]?.d >0 ? "text-green-400" : "text-red-400" }`} >{symbol}</h1>
+                <h1 className={`${stockData[symbol]?.d >0 ? "text-green-400" : "text-red-400" }`}>${stockData[symbol]?.c ?? '—'}</h1>
               </div>
               <div className='flex justify-between items-center text-[12px] py-1 text-gray-400 '>
                 <p>BSE</p>
@@ -152,7 +152,7 @@ const Watchlist = ({setShowBuySellModal}) => {
                 </div>
 
 
-                <p>2355</p>
+                <p>{stockData[symbol]?.d ?? '—'} ({stockData[symbol]?.dp ?? '—'})</p>
               </div>
 
               {/* <button className='bg-red-500 text-white text-sm rounded-md' onClick={() => removeFromWatchlist(symbol)}>Remove</button> */}
