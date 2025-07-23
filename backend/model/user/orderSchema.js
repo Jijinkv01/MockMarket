@@ -45,6 +45,11 @@ const orderSchema = mongoose.Schema({
       return this.orderType === "market" ? "executed" : "pending";
     },
   },
+  orderId: {
+    type: String,
+    unique: true,
+    required: true,
+  },
 
 }, { timestamps: true })
 

@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 
 const FundsComponent = ({active}) => {
 
-    const balance = useSelector((state)=>state.balance.amount)
+    const balance = useSelector((state)=>state.balance.amount).toFixed(2)
 
   return (
     <div className='  mx-2  w-full'>

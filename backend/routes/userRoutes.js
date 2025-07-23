@@ -12,6 +12,9 @@ router.get("/home",protect,UserController.home)
 router.post("/login",UserController.login)
 router.get("/balance",protect, UserController.getUserBalance)
 router.post("/placeOrder",protect,UserController.placeOrder)
+router.get("/getPendingOrders",protect,UserController.getPendingOrders)
+router.put("/cancelPendingOrder/:orderId",protect,UserController.cancelPendingOrder)
+router.get("/getExecutedOrders",protect,UserController.getExecutedOrders)
 
 
 
