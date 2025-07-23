@@ -11,6 +11,7 @@ router.post("/logout",protect,UserController.logout)
 router.get("/home",protect,UserController.home)
 router.post("/login",UserController.login)
 router.get("/balance",protect, UserController.getUserBalance)
+router.post("/placeOrder",protect,UserController.placeOrder)
 
 
 

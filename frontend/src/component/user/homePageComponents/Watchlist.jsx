@@ -150,14 +150,14 @@ const Watchlist = ({ setShowBuySellModal }) => {
               </div>
               <div className='flex justify-between items-center text-[12px] py-1 text-gray-400 '>
                 <p>BSE</p>
-                <div className='flex gap-6 justify-center items-center'>
+                <div className='flex gap-6 justify-center items-center '>
                   <MdDelete className='  text-xl text-black rounded-md cursor-pointer hover:bg-red-500 hover:text-white' onClick={() => removeFromWatchlist(symbol)} />
                   <button onClick={() => setShowBuySellModal({type: "buy", symbol})} className='text-lg border font-bold text-green-500 hover:bg-green-500 hover:text-white cursor-pointer rounded-md w-10' >B</button>
                   <button onClick={() => setShowBuySellModal({type: "sell", symbol})} className='text-lg border font-bold text-red-500 hover:bg-red-500 hover:text-white cursor-pointer rounded-md w-10' >S</button>
                 </div>
 
 
-                <p>{stockData[symbol]?.d.toFixed(2) ?? '—'} ({stockData[symbol]?.dp.toFixed(2) ?? '—'})</p>
+                <p>{stockData[symbol]?.d ?? '—'} ({stockData[symbol]?.dp ?? '—'})</p>
               </div>
 
               {/* <button className='bg-red-500 text-white text-sm rounded-md' onClick={() => removeFromWatchlist(symbol)}>Remove</button> */}

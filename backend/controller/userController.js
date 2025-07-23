@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken")
 const bcrypt = require("bcryptjs")
 const DemoCash = require("../model/user/demoCashSchema")
 const RefreshToken = require("../model/user/RefreshTokenScheme")
+const Order = require("../model/user/orderSchema")
 
 
 
@@ -176,7 +177,62 @@ const getUserBalance = async (req, res) => {
     }
 }
 
+const placeOrder = async (req, res) => {
+    console.log("hai i am going to place order")
+    try {
+        const userId = req.user.id;
+        const { symbol, price, quantity, orderType, totalAmount, orderSide } = req.body;
+        // console.log("req.body ", req.body)
 
+         if (!symbol || typeof symbol !== "string") {
+      return res.status(400).json({ success:false, message: "Symbol is required and must be a string" });
+    }
+
+    if (!orderType || !["market", "limit"].includes(orderType)) {
+      return res.status(400).json({ success:false, message: "Order type must be 'market' or 'limit'" });
+    }
+
+    if (!orderSide || !["buy", "sell"].includes(orderSide)) {
+      return res.status(400).json({ success:false, message: "Order side must be 'buy' or 'sell'" });
+    }
+
+    if (typeof quantity !== "number" || quantity <= 0 || !quantity) {
+      return res.status(400).json({ success:false, message: "Quantity must be a positive number" });
+    }
+    if(!price){
+        return res.status(400).json({success:false, message:"enter the limit price" })
+    }
+
+    const demoBalance = await DemoCash.findOne({ userId });
+    if (orderSide === "buy") {
+    if (demoBalance.balance < totalAmount) {
+      return res.status(400).json({success:false, message: "Insufficient balance" });
+    }
+
+    // Deduct balance
+    demoBalance.balance -= totalAmount;
+    await demoBalance.save();
+  }
+
+     // ✅ Save to DB
+    const newOrder = await Order.create({
+      userId: userId, 
+      symbol,
+      price,
+      quantity,
+      orderType,
+      orderSide,
+      totalAmount,
+      status: orderType === "market" ? "executed" : "pending",
+    });
+    // console.log("new order",newOrder)
+
+    res.status(201).json({success:true, message: "Order placed successfully", newOrder });
+    } catch (error) {
+         console.error("Error placing order:", error);
+    res.status(500).json({success:false, error: "Internal server error" });
+    }
+}
 
 
 module.exports = {
@@ -185,7 +241,8 @@ module.exports = {
     home,
     login,
     getUserBalance,
-    refresh
+    refresh,
+    placeOrder
 
 
 }
