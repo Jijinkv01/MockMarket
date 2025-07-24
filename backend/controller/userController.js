@@ -182,10 +182,9 @@ const getUserBalance = async (req, res) => {
 
 const placeOrder = async (req, res) => {
     console.log("hai i am going to place order")
-    try {
+     try {
         const userId = req.user.id;
         const { symbol, price, quantity, orderType, totalAmount, orderSide } = req.body;
-        // console.log("req.body ", req.body)
 
         if (!symbol || typeof symbol !== "string") {
             return res.status(400).json({ success: false, message: "Symbol is required and must be a string" });
@@ -202,26 +201,29 @@ const placeOrder = async (req, res) => {
         if (typeof quantity !== "number" || quantity <= 0 || !quantity) {
             return res.status(400).json({ success: false, message: "Quantity must be a positive number" });
         }
+
         if (!price) {
-            return res.status(400).json({ success: false, message: "enter the limit price" })
+            return res.status(400).json({ success: false, message: "Enter the limit price" });
         }
 
         const demoBalance = await DemoCash.findOne({ userId });
 
-        if (orderSide === "buy") {
+        if (orderSide === "buy" && orderType === "market") {
             if (demoBalance.balance < totalAmount) {
                 return res.status(400).json({ success: false, message: "Insufficient balance" });
             }
 
-            // Deduct balance
+            // Deduct balance only for executed market buy orders
             demoBalance.balance -= totalAmount;
             await demoBalance.save();
         }
 
         const orderId = uuidv4();
+        const status = orderType === "market" ? "executed" : "pending";
+
         // ✅ Save to DB
         const newOrder = await Order.create({
-            userId: userId,
+            userId,
             symbol,
             price,
             quantity,
@@ -229,42 +231,43 @@ const placeOrder = async (req, res) => {
             orderSide,
             totalAmount,
             orderId,
-            status: orderType === "market" ? "executed" : "pending",
+            status,
         });
 
-        // ✅ Track Holdings
-        const existingHolding = await Holding.findOne({ userId, symbol });
+        // ✅ Update holdings only if the order is executed
+        if (status === "executed") {
+            const existingHolding = await Holding.findOne({ userId, symbol });
 
-        if (orderSide === "buy") {
-            if (existingHolding) {
-                // Update quantity and avgPrice (weighted average)
-                const newTotalCost = existingHolding.quantity * existingHolding.avgPrice + quantity * price;
-                const newQuantity = existingHolding.quantity + quantity;
-                existingHolding.avgPrice = newTotalCost / newQuantity;
-                existingHolding.quantity = newQuantity;
-                await existingHolding.save();
-            } else {
-                // Create new holding
-                await Holding.create({
-                    userId,
-                    symbol,
-                    quantity,
-                    avgPrice: price
-                });
+            if (orderSide === "buy") {
+                if (existingHolding) {
+                    const newTotalCost = existingHolding.quantity * existingHolding.avgPrice + quantity * price;
+                    const newQuantity = existingHolding.quantity + quantity;
+                    existingHolding.avgPrice = newTotalCost / newQuantity;
+                    existingHolding.quantity = newQuantity;
+                    await existingHolding.save();
+                } else {
+                    await Holding.create({
+                        userId,
+                        symbol,
+                        quantity,
+                        avgPrice: price
+                    });
+                }
+            } else if (orderSide === "sell") {
+                if (!existingHolding || existingHolding.quantity < quantity) {
+                    return res.status(400).json({ success: false, message: "Not enough quantity to sell" });
+                }
+                existingHolding.quantity -= quantity;
+                if (existingHolding.quantity === 0) {
+                    await Holding.deleteOne({ _id: existingHolding._id });
+                } else {
+                    await existingHolding.save();
+                }
+
+                // Add money back to demo balance on executed sell
+                demoBalance.balance += totalAmount;
+                await demoBalance.save();
             }
-        } else if (orderSide === "sell") {
-            if (!existingHolding || existingHolding.quantity < quantity) {
-                return res.status(400).json({ message: "Not enough quantity to sell" });
-            }
-            existingHolding.quantity -= quantity;
-            if (existingHolding.quantity === 0) {
-                await Holding.deleteOne({ _id: existingHolding._id });
-            } else {
-                await existingHolding.save();
-            }
-            // Add money to demo balance
-            demoBalance.balance += totalAmount;
-            await demoBalance.save();
         }
 
         res.status(201).json({ success: true, message: "Order placed successfully", newOrder });
@@ -275,11 +278,27 @@ const placeOrder = async (req, res) => {
 }
 
 const getPendingOrders = async (req, res) => {
-  const userId = req.user.id
+    const userId = req.user.id
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 5
+    const skip = (page - 1) * limit;
     try {
-        const orders = await Order.find({userId, orderType: "limit", status: "pending" }).sort({createdAt:-1});
+        const orders = await Order.find({ userId, orderType: "limit", status: "pending" }).sort({ createdAt: -1 }).skip(skip)
+            .limit(limit);
+
+        const total = await Order.countDocuments({
+            userId,
+            orderType: "limit",
+            status: "pending"
+        });
         // console.log("orders",orders)
-        res.json(orders);
+        res.json({
+            orders,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit),
+        });
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Server error" });
@@ -288,37 +307,68 @@ const getPendingOrders = async (req, res) => {
 
 const cancelPendingOrder = async (req, res) => {
     try {
-        const {orderId} = req.params
+        const { orderId } = req.params
         const order = await Order.findOne({ _id: orderId, status: "pending", orderType: "limit" });
 
-    if (!order) {
-      return res.status(404).json({ message: "Pending limit order not found" });
-    }
+        if (!order) {
+            return res.status(404).json({ message: "Pending limit order not found" });
+        }
 
-    // Update the status to "cancelled"
-    order.status = "cancelled";
-    await order.save();
+        // Update the status to "cancelled"
+        order.status = "cancelled";
+        await order.save();
 
-    res.status(200).json({ message: "Order cancelled successfully", order });
-        
+        res.status(200).json({ message: "Order cancelled successfully", order });
+
     } catch (error) {
         console.error("Error cancelling order:", error);
-    res.status(500).json({ message: "Server error while cancelling order" });
+        res.status(500).json({ message: "Server error while cancelling order" });
     }
 }
 
 const getExecutedOrders = async (req, res) => {
     const userId = req.user.id
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
     try {
-        const orders = await Order.find({userId, status: "executed" }).sort({createdAt:-1});
-        console.log("orders",orders)
-        res.json(orders);
+        const orders = await Order.find({ userId, status: "executed" }).sort({ createdAt: -1 }).skip(skip)
+            .limit(limit);
+
+        const total = await Order.countDocuments({ userId, status: "executed" });
+
+        // console.log("orders", orders)
+        res.json({
+            orders,
+            total,
+            page,
+            totalPages: Math.ceil(total / limit),
+        });
     } catch (error) {
-         console.error(error);
+        console.error(error);
         res.status(500).json({ error: "Server error" });
     }
 
 }
+
+const getHoldings = async (req, res) => {
+    const userId = req.user.id
+
+    try {
+        const holdings = await Holding.find({ userId });
+        res.status(200).json(holdings);
+
+    } catch (error) {
+         console.error("Error fetching holdings:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+
+    }
+}
+
+
+
+
 module.exports = {
     register,
     logout,
@@ -329,7 +379,8 @@ module.exports = {
     placeOrder,
     getPendingOrders,
     cancelPendingOrder,
-    getExecutedOrders
+    getExecutedOrders,
+    getHoldings
 
 
 }

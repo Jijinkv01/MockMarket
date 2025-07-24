@@ -13,6 +13,7 @@ import DashboardComponent from '../../component/user/homePageComponents/Dashboar
 import OrdersComponent from '../../component/user/homePageComponents/OrdersComponent';
 import FundsComponent from '../../component/user/homePageComponents/FundsComponent';
 import BuyModal from '../../component/user/homePageComponents/BuyModal';
+import PortfolioComponent from '../../component/user/homePageComponents/PortfolioComponent';
 
 
 
@@ -74,6 +75,8 @@ const Home = () => {
         {active === "Orders" ? <OrdersComponent active={active} /> : ""}
 
         {active === "Funds" ? <FundsComponent active={active} /> : ""}
+
+        {active === "Portfolio" ? <PortfolioComponent active={active} /> : ""}
       </div>
 
 
