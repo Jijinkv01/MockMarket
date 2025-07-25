@@ -174,8 +174,13 @@ const OrdersComponent = ({ active }) => {
                             </tr>
                         </thead>
                         <tbody>
-                            {/* Example static row — Replace or map over data here */}
-                            {executedOrders.map((item, index) => (
+                            {executedOrders.length === 0 ? (
+                                <tr>
+                                    <td colSpan="7" className="text-center py-4 text-gray-500">
+                                        No pending orders.
+                                    </td>
+                                </tr>
+                            ) : (executedOrders.map((item, index) => (
                                 <tr key={index} className="text-sm text-gray-800 border border-gray-300">
                                     <td className="px-4 py-2 ">{item.symbol}</td>
                                     <td className="px-4 py-2 ">{item.quantity}</td>
@@ -186,7 +191,8 @@ const OrdersComponent = ({ active }) => {
 
 
                                 </tr>
-                            ))}
+                            ))
+                            )}
                         </tbody>
                     </table>
                     <div className="flex justify-center items-center gap-4 mt-4">

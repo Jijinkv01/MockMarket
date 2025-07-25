@@ -20,7 +20,7 @@ const FundsComponent = ({active}) => {
                         <h1 className='text-green-600 font-medium text-2xl'>Account Balance</h1>
                 
                     </div>
-                    <p className='text-xl font-bold border border-t-red-500 border-b-green-500 rounded-lg px-3'>₹ {balance}</p>
+                    <p className='text-xl font-bold border border-t-red-500 border-b-green-500 rounded-lg px-3'>$ {balance}</p>
                 </div>
 
             </div>

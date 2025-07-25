@@ -244,13 +244,15 @@ const placeOrder = async (req, res) => {
                     const newQuantity = existingHolding.quantity + quantity;
                     existingHolding.avgPrice = newTotalCost / newQuantity;
                     existingHolding.quantity = newQuantity;
+                    existingHolding.investmentAmount = existingHolding.avgPrice * newQuantity
                     await existingHolding.save();
                 } else {
                     await Holding.create({
                         userId,
                         symbol,
                         quantity,
-                        avgPrice: price
+                        avgPrice: price,
+                        investmentAmount: price * quantity,
                     });
                 }
             } else if (orderSide === "sell") {
@@ -366,6 +368,20 @@ const getHoldings = async (req, res) => {
     }
 }
 
+const totalInvestment = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        const holdings = await Holding.find({ userId })
+         const totalInvestment = holdings.reduce((sum, holding) => {
+            return sum + (holding.investmentAmount || 0)
+        }, 0)
+        res.status(200).json({ success: true, totalInvestment });
+        
+    } catch (error) {
+        console.error("Error fetching total investment:", error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+}
 
 
 
@@ -380,7 +396,8 @@ module.exports = {
     getPendingOrders,
     cancelPendingOrder,
     getExecutedOrders,
-    getHoldings
+    getHoldings,
+    totalInvestment
 
 
 }

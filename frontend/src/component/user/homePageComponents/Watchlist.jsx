@@ -149,7 +149,7 @@ const Watchlist = ({ setShowBuySellModal }) => {
                 <h1 className={`${stockData[symbol]?.d > 0 ? "text-green-400" : "text-red-400"}`}>${stockData[symbol]?.c.toFixed(2) ?? '—'}</h1>
               </div>
               <div className='flex justify-between items-center text-[12px] py-1 text-gray-400 '>
-                <p>BSE</p>
+                <p>NASDAQ</p>
                 <div className='flex gap-6 justify-center items-center '>
                   <MdDelete className='  text-xl text-black rounded-md cursor-pointer hover:bg-red-500 hover:text-white' onClick={() => removeFromWatchlist(symbol)} />
                   <button onClick={() => setShowBuySellModal({type: "buy", symbol})} className='text-lg border font-bold text-green-500 hover:bg-green-500 hover:text-white cursor-pointer rounded-md w-10' >B</button>

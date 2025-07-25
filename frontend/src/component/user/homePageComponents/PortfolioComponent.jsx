@@ -1,13 +1,32 @@
 import React, { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux';
 import axiosInstance from '../../../api/axiosInstance';
+import { useDispatch } from 'react-redux';
+import { setGrossPL } from '../../../store/profitLossSlice '
 
 
 const PortfolioComponent = ({ active }) => {
     const [activeTab, setActiveTab] = useState("Holdings");
     const [holdings, setHoldings] = useState([]);
+    const dispatch = useDispatch()
 
     const stockData = useSelector((state) => state.stocks.stockData);
+   
+
+
+    useEffect(() => {
+  if (holdings.length && Object.keys(stockData).length) {
+    let gross = 0;
+    holdings.forEach(item => {
+      const ltp = stockData[item.symbol]?.c || 0;
+      const profitLoss = (ltp - item.avgPrice) * item.quantity;
+      gross += profitLoss;
+    });
+
+    dispatch(setGrossPL(Number(gross.toFixed(2))));
+  }
+}, [holdings, stockData]);
+    
 
 
 
@@ -71,10 +90,10 @@ const PortfolioComponent = ({ active }) => {
                                 <tr key={index} className='border-t border-gray-300'>
                                     <td className='px-4 py-2'>{item.symbol}</td>
                                     <td className='px-4 py-2'>{item.quantity}</td>
-                                    <td className='px-4 py-2'>₹{item.avgPrice.toFixed(2)}</td>
-                                    <td className='px-4 py-2'> ₹{(stockData[item.symbol]?.c || 0).toFixed(2)}</td>
+                                    <td className='px-4 py-2'>${item.avgPrice.toFixed(2)}</td>
+                                    <td className='px-4 py-2'> ${(stockData[item.symbol]?.c || 0).toFixed(2)}</td>
                                     <td className={`px-4 py-2 ${((stockData[item.symbol]?.c || 0) - item.avgPrice) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                        ₹{(((stockData[item.symbol]?.c || 0) - item.avgPrice) * item.quantity).toFixed(2)}
+                                        ${(((stockData[item.symbol]?.c || 0) - item.avgPrice) * item.quantity).toFixed(2)}
                                     </td>
                                 </tr>
                             )) : (

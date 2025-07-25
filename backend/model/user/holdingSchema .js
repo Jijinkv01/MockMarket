@@ -19,8 +19,13 @@ const holdingSchema = mongoose.Schema({
     min: 0,
   },
   avgPrice: {
-    type: Number, // weighted average price
+    type: Number,
     required: true,
+  },
+  investmentAmount: {
+    type: Number,
+    required:true
+
   }
 }, { timestamps: true });
 
