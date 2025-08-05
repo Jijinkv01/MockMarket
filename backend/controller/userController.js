@@ -383,6 +383,20 @@ const totalInvestment = async (req, res) => {
     }
 }
 
+const fundReset = async (req, res) => {
+    try {
+        const {amount} = req.body
+        console.log(amount)
+        const userId = req.user.id
+        console.log("userId",userId)
+        await DemoCash.updateOne({userId:userId},{$set:{balance:amount}})
+        return res.json({ success: true, message: "Balance reset successful" });
+        
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Server error" });
+    }
+
+}
 
 
 module.exports = {
@@ -397,7 +411,8 @@ module.exports = {
     cancelPendingOrder,
     getExecutedOrders,
     getHoldings,
-    totalInvestment
+    totalInvestment,
+    fundReset
 
 
 }

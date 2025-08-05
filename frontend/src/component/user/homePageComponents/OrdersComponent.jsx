@@ -82,13 +82,7 @@ const OrdersComponent = ({ active }) => {
                                 ? 'bg-blue-600 text-white'         // active style
                                 : 'bg-gray-200 text-gray-600'      // inactive style
                             }`}>Executed</button>
-                    <button onClick={() => setActiveTab("Trade Book")}
-
-                        className={`px-3 py-  rounded-lg cursor-pointer transition-all duration-300 text-sm
-          ${activeTab === "Trade Book"
-                                ? 'bg-blue-600 text-white'         // active style
-                                : 'bg-gray-200 text-gray-600'      // inactive style
-                            }`}>Trade Book</button>
+                    
 
                 </div>
             </div>

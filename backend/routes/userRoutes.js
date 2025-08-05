@@ -17,6 +17,7 @@ router.put("/cancelPendingOrder/:orderId",protect,UserController.cancelPendingOr
 router.get("/getExecutedOrders",protect,UserController.getExecutedOrders)
 router.get("/getHoldings",protect,UserController.getHoldings)
 router.get("/totalInvestment",protect,UserController.totalInvestment)
+router.post("/fundReset",protect,UserController.fundReset)
 
 
 

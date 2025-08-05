@@ -2,20 +2,21 @@ import React, { useState } from 'react'
 import ProfileDropdown from './ProfileDropdown';
 
 
+
 const NavbarHomepage = ({active, setActive}) => {
     // const [active, setActive] = useState('Dashboard'); // default active tab
 
     const navItems = ['Dashboard', 'Orders', 'Portfolio', 'Funds'];
     return (
         <div className='  flex justify-between items-center  border-b-2 border-b-gray-200 ' >
-            <div className='border-r-2 border-r-gray-200 flex gap-5 w-90 p-1'>
+            <div className='border-r-2 border-r-gray-200 flex justify-between w-90 p-1'>
                 <div className=''>
-                    <h3>Nifty 50</h3>
-                    <p className='text-sm'>25095.50-54.35 (-0.22%)</p>
+                    <h3>NASDAQ</h3>
+                    <p className='text-sm'>21,053.58 (1.95%)</p>
                 </div>
                 <div className=''>
-                    <h3>Nifty Bank</h3>
-                    <p className='text-sm'>56799.8545.15 (0.08%)</p>
+                    <h3>NYSE</h3>
+                    <p className='text-sm'>20488.15 (0.08%)</p>
                 </div>
             </div>
             <div className='flex gap-10 px-5 items-center justify-center '>
@@ -34,6 +35,7 @@ const NavbarHomepage = ({active, setActive}) => {
                 <div><p>Funds</p></div> */}
             </div>
 
+       
             <ProfileDropdown />
 
         </div>

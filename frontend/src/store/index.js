@@ -10,7 +10,9 @@ export const store = configureStore({
         user: userReducer,
         balance: balanceReducer,
         stocks: stockReducer,
-        profitLoss: profitLossReducer
+        profitLoss: profitLossReducer,
+      
+
 
 
     }

@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+
 import { Routes, Route } from 'react-router-dom'
 import LandingPage from './pages/user/LandingPage'
 import Products from './pages/user/Products'
@@ -11,13 +12,15 @@ import PrivateRoute from './routes/PrivateRoute'
 import PublicRoute from './routes/PublicRoute'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import SettingsPage from './pages/user/SettingsPage'
 
 
 const App = () => {
 
+  
+
   return (
     <>
-    
     <Routes>
       <Route path='/' element={<PublicRoute> <LandingPage /> </PublicRoute>}  />
       <Route path='/products' element={<Products />}  />
@@ -26,11 +29,8 @@ const App = () => {
       <Route path='/register' element={<PublicRoute> <Register /> </PublicRoute>}  />
       <Route path='/login' element={<PublicRoute> <Login /> </PublicRoute>}  />
       <Route path='/home' element={<PrivateRoute> <Home /> </PrivateRoute>}  />
+      <Route path='/settings' element={<PrivateRoute> <SettingsPage /> </PrivateRoute>}  />
        
-      
-      
-      
-      
     </Routes>
     <ToastContainer position="top-center" autoClose={3000} />
 

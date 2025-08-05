@@ -61,13 +61,13 @@ const PortfolioComponent = ({ active }) => {
                                 : 'bg-gray-200 text-gray-600'      // inactive style
                             }`}>Holdings</button>
 
-                    <button onClick={() => setActiveTab("Position")}
+                    {/* <button onClick={() => setActiveTab("Position")}
 
                         className={`px-3  rounded-lg cursor-pointer transition-all duration-300 text-sm
               ${activeTab === "Position"
                                 ? 'bg-blue-600 text-white'         // active style
                                 : 'bg-gray-200 text-gray-600'      // inactive style
-                            }`}>Position</button>
+                            }`}>Position</button> */}
 
 
                 </div>
